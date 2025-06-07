@@ -4,6 +4,7 @@ import cors from 'cors';
 import connectDB from './config/db.js';
 import 'dotenv/config';
 import userRouter from './Routes/userRouter.js';
+import sellerRouter from './Routes/sellerRoutes.js';
 
 const app = express();
 const port = process.env.PORT || 8081;
@@ -20,6 +21,7 @@ const port = process.env.PORT || 8081;
   // Routes
   app.get('/', (req, res) => res.send("API is working"));
   app.use('/api/user',userRouter)
+  app.use('/api/seller',sellerRouter)
   
 
   // Start server
