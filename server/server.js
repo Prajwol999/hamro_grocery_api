@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import connectDB from './config/db.js';
 import 'dotenv/config';
+import userRouter from './Routes/userRouter.js';
 
 const app = express();
 const port = process.env.PORT || 8081;
@@ -18,6 +19,8 @@ const port = process.env.PORT || 8081;
 
   // Routes
   app.get('/', (req, res) => res.send("API is working"));
+  app.use('/api/user',userRouter)
+  
 
   // Start server
   app.listen(port, () => {
