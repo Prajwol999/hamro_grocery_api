@@ -1,31 +1,32 @@
-import express from 'express';
-import cookieParser from 'cookie-parser';
-import cors from 'cors';
-import connectDB from './config/db.js';
-import 'dotenv/config';
-import userRouter from './Routes/userRouter.js';
-import sellerRouter from './Routes/sellerRoutes.js';
+import dotenv from "dotenv";
+import express from "express";
+import cors from "cors";
+import { connectDB } from "./config/db.js";
+import userRoutes from "./routes/userRoutes.js"; // This works now after fixing userRoutes.js
 
+// Load environment variables
+dotenv.config();
+
+// Create Express app
 const app = express();
-const port = process.env.PORT || 8081;
 
-(async () => {
-  await connectDB();
+// Connect to MongoDB
+connectDB();
 
-  // Middleware setup
-  const allowedOrigins = ['http://localhost:5173'];
-  app.use(express.json());
-  app.use(cookieParser());
-  app.use(cors({ origin: allowedOrigins, credentials: true }));
+// Middleware
+app.use(cors({ origin: "*" }));
+app.use(express.json());
 
-  // Routes
-  app.get('/', (req, res) => res.send("API is working"));
-  app.use('/api/user',userRouter)
-  app.use('/api/seller',sellerRouter)
-  
+// Routes
+app.use("/api/auth", userRoutes);
 
-  // Start server
-  app.listen(port, () => {
-    console.log(`Server started on port ${port}`);
-  });
-})();
+// Root route for testing
+app.get("/", (req, res) => {
+    res.status(200).send("Welcome to the hamrogrocery-backend API!");
+});
+
+// Start server
+const PORT = process.env.PORT || 8081;
+app.listen(PORT, () => {
+    console.log(`✅ Server running at http://localhost:${PORT}`);
+});
