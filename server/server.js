@@ -2,7 +2,8 @@ import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import { connectDB } from "./config/db.js";
-import userRoutes from "./routes/userRoutes.js"; // This works now after fixing userRoutes.js
+import userRoutes from "./routes/userRoutes.js"; 
+import adminCategoryRoutes from "./routes/admin/adminCategoryRoutes.js"
 
 // Load environment variables
 dotenv.config();
@@ -19,6 +20,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/auth", userRoutes);
+app.use("/api/admin/category", adminCategoryRoutes)
 
 // Root route for testing
 app.get("/", (req, res) => {
