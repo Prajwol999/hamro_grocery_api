@@ -1,10 +1,10 @@
 import express from "express";
 import {
   createUser, getUsers, getOneUser, updateOneUser, deleteOneUser
-} from "../../controllers/admin/usermanagement.js";
+} from "../../controllers/admin/userManagement.js";
 import {
   authenticateUser, isAdmin
-} from "../../middlewares/authorizedUser.js";
+} from "../../middleware/authorizedUser.js";
 
 const router = express.Router();
 
