@@ -42,42 +42,43 @@ export const registerUser = async (req, res) => {
     }
 };
 
+
+
 export const loginUser = async (req, res) => {
+  try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return res.status(400).json({ success: false, message: "Missing Field" });
+      return res.status(400).json({ message: 'Email and password are required.' });
     }
 
-    try {
-        const getUser = await User.findOne({ email });
-
-        if (!getUser) {
-            return res.status(400).json({ success: false, message: "User not found" });
-        }
-
-        const passwordCheck = await bcrypt.compare(password, getUser.password);
-
-        if (!passwordCheck) {
-            return res.status(400).json({ success: false, message: "Invalid Credentials" });
-        }
-
-        const payload = {
-            _id: getUser._id,
-            email: getUser.email,
-            fullName: getUser.fullName
-        };
-
-        const token = jwt.sign(payload, process.env.SECRET, { expiresIn: "7d" });
-
-        return res.status(200).json({
-            success: true,
-            message: "Login successful",
-            data: getUser,
-            token
-        });
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({ success: false, message: "Server Error" });
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid email or password.' });
     }
+
+    // Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid email or password.' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign({ _id: user._id, role: user.role }, process.env.SECRET, { expiresIn: '1d' });
+
+    // Send response without password
+    const userData = {
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+    };
+
+    res.status(200).json({ data: userData, token });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error during login' });
+  }
 };
