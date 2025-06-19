@@ -1,35 +1,17 @@
-const express = require("express")
-const router = express.Router()
-const { createUser, getUsers,
-    getOneUser, updateOneUser,
-    deleteOneUser } = require("../../controllers/admin/userManagement")
-const { authenticateUser, isAdmin } = require("../../middlewares/authorizedUser")
+import express from "express";
+import {
+  createUser, getUsers, getOneUser, updateOneUser, deleteOneUser
+} from "../../controllers/admin/usermanagement.js";
+import {
+  authenticateUser, isAdmin
+} from "../../middlewares/authorizedUser.js";
 
-router.post(
-    "/create",
-    createUser
-)
+const router = express.Router();
 
-router.get(
-    "/",
-    authenticateUser,
-    isAdmin,
-    getUsers
-)
+router.post("/create", createUser);
+router.get("/", authenticateUser, isAdmin, getUsers);
+router.get("/:id", getOneUser);
+router.put("/:id", updateOneUser);
+router.delete("/:id", deleteOneUser);
 
-router.get(
-    "/:id", // req.params.id
-    getOneUser
-)
-
-router.put(
-    "/:id", // req.params.id
-    updateOneUser
-)
-
-router.delete(
-    "/:id", // req.params.id
-    deleteOneUser
-)
-
-module.exports = router
+export default router;
