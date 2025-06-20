@@ -1,10 +1,12 @@
-import express from "express";
-import { registerUser, loginUser } from "../controllers/userController.js";
+import express from 'express';
+import { getProducts, createProduct, updateProduct, deleteProduct } from '../controllers/productController.js';
+import { authenticateUser, isAdmin } from '../middleware/authorizedUser.js';
 
 const router = express.Router();
 
-router.post("/register", registerUser);
-router.post("/login", loginUser);
-
+router.get('/', getProducts);
+router.post('/', authenticateUser, isAdmin, createProduct);
+router.put('/:id', authenticateUser, isAdmin, updateProduct);
+router.delete('/:id', authenticateUser, isAdmin, deleteProduct);
 
 export default router;
