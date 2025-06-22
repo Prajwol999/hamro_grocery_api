@@ -9,7 +9,7 @@ import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 
-import errorHandler from './middlewares/errorHandler.js';
+import errorHandler from './middleware/errorHandler.js';
 
 dotenv.config();
 const app = express();

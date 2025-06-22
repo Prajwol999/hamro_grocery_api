@@ -1,7 +1,7 @@
 import express from "express";
 import {
   createUser, getUsers, getOneUser, updateOneUser, deleteOneUser
-} from "../../controllers/admin/userManagement.js";
+} from "../../controllers/admin/usermanagement.js";
 import {
   authenticateUser, isAdmin
 } from "../../middleware/authorizedUser.js";

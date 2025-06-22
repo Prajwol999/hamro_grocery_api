@@ -5,7 +5,7 @@ import Product from '../models/Product.js';
 
 export const getOrders = async (req, res) => {
   try {
-    // Fetch all orders and populate the customer's full name
+    
     const orders = await Order.find({}).populate('customer', 'fullName email').sort({ createdAt: -1 });
     res.status(200).json({ success: true, orders });
   } catch (error) {
@@ -14,11 +14,7 @@ export const getOrders = async (req, res) => {
   }
 };
 
-/**
- * @desc    Update order status (for admin)
- * @route   PUT /api/orders/:id
- * @access  Private/Admin
- */
+
 export const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -35,12 +31,6 @@ export const updateOrderStatus = async (req, res) => {
   }
 };
 
-
-/**
- * @desc    Get logged in user's orders
- * @route   GET /api/orders/myorders
- * @access  Private
- */
 export const getMyOrders = async (req, res) => {
     try {
         // Find orders belonging to the logged-in user
@@ -53,13 +43,8 @@ export const getMyOrders = async (req, res) => {
 };
 
 
-/**
- * @desc    Create a new order (for user)
- * @route   POST /api/orders
- * @access  Private
- */
 export const createOrder = async (req, res) => {
-    // Expects { items: [...], address: "string location" }
+    
     const { items, address } = req.body;
     const deliveryFee = 50; 
 
@@ -99,7 +84,7 @@ export const createOrder = async (req, res) => {
             customer: req.user._id,
             items: orderItems,
             amount: finalAmount,
-            address: address, // Save the simplified address string
+            address: address, 
         });
 
         await newOrder.save();
@@ -115,14 +100,14 @@ export const createOrder = async (req, res) => {
 
 export const getOrderById = async (req, res) => {
   try {
-    // Find the order by its ID and populate the customer's details
+   
     const order = await Order.findById(req.params.id).populate('customer', 'fullName email');
 
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
-    // Send the detailed order object back
+    
     res.status(200).json({ success: true, order });
   } catch (error) {
     console.error("Error fetching single order:", error);
