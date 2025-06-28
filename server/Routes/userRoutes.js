@@ -2,7 +2,7 @@
 import express from 'express';
 import { registerUser, loginUser, getUserProfile, updateUserProfilePicture } from '../controllers/userController.js';
 import { authenticateUser } from '../middleware/authorizedUser.js';
-import fileUpload from '../middleware/fileUpload.js';
+import multerUpload from '../middleware/multerUpload.js';
 
 const router = express.Router();
 
@@ -13,7 +13,7 @@ router.get('/profile', authenticateUser, getUserProfile);
 router.put(
     '/profile/picture',
     authenticateUser,
-    fileUpload.single('profilePicture'), 
+    multerUpload.single('profilePicture'), // Field name must be 'profilePicture'
     updateUserProfilePicture
 );
 

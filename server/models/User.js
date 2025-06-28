@@ -23,7 +23,7 @@ const UserSchema = new Schema(
     },
     profilePicture: {
       type: String,
-      default: '', // Default to an empty string
+      default: '', 
     },
   },
   { timestamps: true }

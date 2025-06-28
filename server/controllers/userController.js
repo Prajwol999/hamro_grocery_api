@@ -3,7 +3,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 
-
 export const registerUser = async (req, res) => {
     const { email, fullName, password } = req.body;
     if (!email || !fullName || !password) {
@@ -18,7 +17,7 @@ export const registerUser = async (req, res) => {
         const newUser = new User({ email, fullName, password: hashedPassword });
         await newUser.save();
 
-        
+       
         const userData = { 
             _id: newUser._id, 
             fullName: newUser.fullName, 
@@ -58,14 +57,15 @@ export const loginUser = async (req, res) => {
 
     const token = jwt.sign({ _id: user._id, role: user.role }, process.env.SECRET, { expiresIn: '1d' });
     
-    
+    // --- FIX ---
+    // Add `createdAt` to the response data.
     const userData = { 
         _id: user._id, 
         fullName: user.fullName, 
         email: user.email, 
         role: user.role, 
         profilePicture: user.profilePicture,
-        createdAt: user.createdAt 
+        createdAt: user.createdAt // <-- ADD THIS LINE
     };
 
     res.status(200).json({ success: true, data: userData, token });
@@ -77,7 +77,7 @@ export const loginUser = async (req, res) => {
 
 export const getUserProfile = async (req, res) => {
     try {
-        
+        // This function is already correct as .select('-password') includes all other fields.
         const user = await User.findById(req.user._id).select('-password');
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
@@ -89,7 +89,7 @@ export const getUserProfile = async (req, res) => {
     }
 };
 
-
+// This function is already correct and will not be harmed by the changes.
 export const updateUserProfilePicture = async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ success: false, message: "No file uploaded." });
@@ -112,7 +112,7 @@ export const updateUserProfilePicture = async (req, res) => {
             email: user.email,
             role: user.role,
             profilePicture: user.profilePicture,
-            createdAt: user.createdAt 
+            createdAt: user.createdAt // This was already correctly included.
         };
 
         res.status(200).json({
