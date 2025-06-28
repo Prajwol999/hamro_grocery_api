@@ -11,7 +11,7 @@ export const authenticateUser = async (req, res, next) => {
     try {
         const token = authHeader.split(" ")[1];
         
-        // Ensure the SECRET is loaded before verifying
+        
         if (!process.env.SECRET) {
             throw new Error('JWT Secret is not defined. Cannot verify token.');
         }
