@@ -1,20 +1,31 @@
-
 import express from 'express';
-import { registerUser, loginUser, getUserProfile, updateUserProfilePicture } from '../controllers/userController.js';
+import { registerUser, loginUser, getUserProfile, updateUserProfilePicture, updateUserProfile,sendResetLink,resetPassword } from '../controllers/userController.js';
 import { authenticateUser } from '../middleware/authorizedUser.js';
-import fileUpload from '../middleware/fileUpload.js';
+import multerUpload from '../middleware/multerUpload.js';
 
 const router = express.Router();
 
-
+// --- PUBLIC ROUTES ---
 router.post('/register', registerUser);
 router.post('/login', loginUser);
+
+// --- PROTECTED ROUTES ---
 router.get('/profile', authenticateUser, getUserProfile);
+router.put('/profile', authenticateUser, updateUserProfile);
+
 router.put(
     '/profile/picture',
     authenticateUser,
-    fileUpload.single('profilePicture'), 
+    multerUpload.single('profilePicture'),
     updateUserProfilePicture
+);
+router.post(
+    "/forgot-password",
+    sendResetLink
+);
+router.post(
+    "/reset-password/:token",
+    resetPassword
 );
 
 export default router;

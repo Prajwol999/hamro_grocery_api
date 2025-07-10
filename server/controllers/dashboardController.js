@@ -5,7 +5,7 @@ import Product from '../models/Product.js';
 
 export const getDashboardStats = async (req, res) => {
   try {
-   
+    
     const totalRevenuePipeline = await Order.aggregate([
       { $match: { status: 'Delivered' } },
       { 
@@ -16,7 +16,7 @@ export const getDashboardStats = async (req, res) => {
       }
     ]);
 
-    
+  
     const totalOrders = await Order.countDocuments({ 
         status: { $in: ['Pending', 'Shipped'] } 
     });
@@ -35,7 +35,8 @@ export const getDashboardStats = async (req, res) => {
         },
         { $sort: { "_id.month": 1 } }
     ]);
-     
+    
+    
     const topProducts = await Order.aggregate([
         { $unwind: "$items" },
         { $group: {
