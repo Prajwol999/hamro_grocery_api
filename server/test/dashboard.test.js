@@ -1,4 +1,4 @@
-// dashboard.test.js
+
 import request from 'supertest';
 import mongoose from 'mongoose';
 import { app, server } from '../server.js'; 
@@ -21,7 +21,7 @@ const testNormalUserEmail = 'userdash@example.com';
 const testNormalUserPassword = 'UserDash123!';
 
 beforeAll(async () => {
-    // Clean up existing test data
+    
     await Order.deleteMany({});
     await User.deleteMany({ email: { $in: [testAdminEmail, testNormalUserEmail, 'customer1@test.com', 'customer2@test.com'] } });
     await Product.deleteMany({});
