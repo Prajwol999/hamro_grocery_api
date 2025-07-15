@@ -208,16 +208,16 @@ describe('Order API Tests', () => {
         expect(res.statusCode).toBe(200);
         expect(res.body.success).toBe(true);
         expect(Array.isArray(res.body.orders)).toBe(true);
-        expect(res.body.orders.length).toBeGreaterThanOrEqual(2); // At least the two orders created above
+        expect(res.body.orders.length).toBeGreaterThanOrEqual(2); 
         res.body.orders.forEach(order => {
             expect(order.customer.toString()).toBe(normalUserId.toString());
-            expect(order.status).not.toBe('Pending Payment'); // Should not include pending payment status
+            expect(order.status).not.toBe('Pending Payment'); 
         });
     });
 
     // Get Payment History (User)
     it('should get logged in user\'s payment history', async () => {
-        // Update one of the orders to 'Delivered' to ensure it appears in history
+        
         await Order.findByIdAndUpdate(orderIdForUpdate, { status: 'Delivered', paymentMethod: 'COD' });
 
         const res = await request(app)
@@ -227,13 +227,13 @@ describe('Order API Tests', () => {
         expect(res.statusCode).toBe(200);
         expect(res.body.success).toBe(true);
         expect(Array.isArray(res.body.history)).toBe(true);
-        expect(res.body.history.length).toBeGreaterThanOrEqual(2); // Should include all orders regardless of payment status
+        expect(res.body.history.length).toBeGreaterThanOrEqual(2); 
         res.body.history.forEach(order => {
             expect(order.customer.toString()).toBe(normalUserId.toString());
         });
     });
 
-    // Get All Orders (Admin)
+    
     it('should get all orders for admin', async () => {
         const res = await request(app)
             .get('/api/orders')
@@ -242,10 +242,10 @@ describe('Order API Tests', () => {
         expect(res.statusCode).toBe(200);
         expect(res.body.success).toBe(true);
         expect(Array.isArray(res.body.orders)).toBe(true);
-        expect(res.body.orders.length).toBeGreaterThanOrEqual(2); // All orders created so far
+        expect(res.body.orders.length).toBeGreaterThanOrEqual(2); 
         res.body.orders.forEach(order => {
             expect(order.status).not.toBe('Pending Payment');
-            expect(order).toHaveProperty('customer'); // Populated customer info
+            expect(order).toHaveProperty('customer'); 
         });
     });
 
@@ -259,7 +259,7 @@ describe('Order API Tests', () => {
         expect(res.body.message).toBe('Access denied: Admin privileges are required.');
     });
 
-    // Get Order by ID (Admin)
+    
     it('should get a single order by ID for admin', async () => {
         const res = await request(app)
             .get(`/api/orders/${orderIdForAdminGet}`)
@@ -268,7 +268,7 @@ describe('Order API Tests', () => {
         expect(res.statusCode).toBe(200);
         expect(res.body.success).toBe(true);
         expect(res.body.order._id.toString()).toBe(orderIdForAdminGet.toString());
-        expect(res.body.order).toHaveProperty('customer'); // Populated customer info
+        expect(res.body.order).toHaveProperty('customer'); 
     });
 
     it('should return 404 if order not found by ID for admin', async () => {
@@ -282,14 +282,14 @@ describe('Order API Tests', () => {
         expect(res.body.message).toBe('Order not found');
     });
 
-    // Update Order Status (Admin Only)
+    
     it('should allow admin to update order status to Shipped', async () => {
-        // Create a fresh pending order for status update test
+        
         const newOrderRes = await request(app)
             .post('/api/orders')
             .set('Authorization', `Bearer ${userToken}`)
             .send({ items: [{ productId: testProductId, quantity: 1 }], address: 'Update Status Address', phone: '9876543218' });
-        orderIdForCancel = newOrderRes.body.order._id; // Store for cancellation test
+        orderIdForCancel = newOrderRes.body.order._id; 
 
         const res = await request(app)
             .put(`/api/orders/${orderIdForUpdate}`)
@@ -304,28 +304,28 @@ describe('Order API Tests', () => {
     });
 
     it('should award grocery points when order status changes from Shipped to Delivered (COD)', async () => {
-        // Ensure user has some base points (reset to known state for test)
+        
         await User.findByIdAndUpdate(normalUserId, { groceryPoints: 50 });
         const userBeforeDelivery = await User.findById(normalUserId);
         const initialPoints = userBeforeDelivery.groceryPoints;
 
-        // Create an order that qualifies for points (amount >= 2000 after itemsTotal calculation)
+        
         const qualifyingProduct = await Product.create({
             name: 'High Value Product',
             category: testCategoryId,
-            price: 1000, // Make it 1000 per item
+            price: 1000, 
             stock: 10,
-            imageUrl: 'http://example.com/high-value-product.jpg' // ADDED: Required imageUrl
+            imageUrl: 'http://example.com/high-value-product.jpg' 
         });
 
         const highValueOrderRes = await request(app)
             .post('/api/orders')
             .set('Authorization', `Bearer ${userToken}`)
-            .send({ items: [{ productId: qualifyingProduct._id, quantity: 2 }], address: 'High Value Address', phone: '9876543200' }); // Items total 2000
+            .send({ items: [{ productId: qualifyingProduct._id, quantity: 2 }], address: 'High Value Address', phone: '9876543200' }); 
 
         const highValueOrderId = highValueOrderRes.body.order._id;
 
-        // Now update its status to 'Delivered'
+        
         const res = await request(app)
             .put(`/api/orders/${highValueOrderId}`)
             .set('Authorization', `Bearer ${adminToken}`)
@@ -337,14 +337,14 @@ describe('Order API Tests', () => {
 
         const userAfterDelivery = await User.findById(normalUserId);
         expect(userAfterDelivery.groceryPoints).toBeGreaterThan(initialPoints);
-        expect(res.body.order.pointsAwarded).toBeGreaterThan(0); // Should have points awarded
+        expect(res.body.order.pointsAwarded).toBeGreaterThan(0); 
     });
 
 
     it('should refund loyalty points and restock products when order status changes to Cancelled', async () => {
-        // Create a new order that has a discount applied for this test
-        const initialPoints = (await User.findById(normalUserId)).groceryPoints; // Get user points before discount and cancellation
-        await User.findByIdAndUpdate(normalUserId, { groceryPoints: initialPoints + 150 }); // Ensure enough points
+       
+        const initialPoints = (await User.findById(normalUserId)).groceryPoints; 
+        await User.findByIdAndUpdate(normalUserId, { groceryPoints: initialPoints + 150 }); 
 
         const productStockBeforeOrder = (await Product.findById(testProductId)).stock;
 
@@ -359,15 +359,15 @@ describe('Order API Tests', () => {
             });
         orderIdForAlreadyCancelled = discountedOrderRes.body.order._id;
 
-        // Verify discount applied and points deducted
+        
         const userAfterDiscount = await User.findById(normalUserId);
-        expect(userAfterDiscount.groceryPoints).toBe(initialPoints); // 150 deducted from initialPoints + 150
+        expect(userAfterDiscount.groceryPoints).toBe(initialPoints); 
 
-        // Verify product stock reduced
+        
         const productStockAfterOrder = (await Product.findById(testProductId)).stock;
         expect(productStockAfterOrder).toBe(productStockBeforeOrder - 3);
 
-        // Now cancel the order
+        
         const res = await request(app)
             .put(`/api/orders/${orderIdForAlreadyCancelled}`)
             .set('Authorization', `Bearer ${adminToken}`)
@@ -377,11 +377,11 @@ describe('Order API Tests', () => {
         expect(res.body.success).toBe(true);
         expect(res.body.order.status).toBe('Cancelled');
 
-        // Verify loyalty points refunded
+        
         const userAfterCancellation = await User.findById(normalUserId);
-        expect(userAfterCancellation.groceryPoints).toBe(initialPoints + 150); // Should be initialPoints + 150 (refunded discount points)
+        expect(userAfterCancellation.groceryPoints).toBe(initialPoints + 150); 
 
-        // Verify product stock restored
+        
         const productStockAfterCancellation = (await Product.findById(testProductId)).stock;
         expect(productStockAfterCancellation).toBe(productStockBeforeOrder);
     });

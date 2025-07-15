@@ -26,13 +26,13 @@ afterAll(async () => {
     
     await User.deleteMany({ email: { $in: [testUserEmail, 'loginfail@example.com', 'updatetest@example.com', 'existing@example.com'] } });
 
-    // Close Mongoose connection
+    
     if (mongoose.connection.readyState === 1) {
         await mongoose.connection.close();
         console.log('--- afterAll (User Tests): MongoDB connection closed cleanly ---');
     }
 
-    // Explicitly close the HTTP server
+    
     if (server && server.listening) {
         await new Promise(resolve => server.close(resolve));
         console.log('--- afterAll (User Tests): Express server closed cleanly ---');
@@ -42,7 +42,7 @@ afterAll(async () => {
 
 describe('User Authentication & Profile API Tests', () => {
 
-    // POST /api/auth/register
+    
     it('should register a new user successfully', async () => {
         const res = await request(app)
             .post('/api/auth/register')
@@ -61,7 +61,7 @@ describe('User Authentication & Profile API Tests', () => {
         expect(res.body.data.role).toBe('normal'); // Default role
         expect(res.body.data).not.toHaveProperty('password'); // Password should not be returned
 
-        // Store user ID and token for subsequent tests
+        
         userId = res.body.data._id;
     });
 
@@ -71,7 +71,7 @@ describe('User Authentication & Profile API Tests', () => {
             .send({
                 fullName: 'Incomplete User',
                 email: 'incomplete@example.com'
-                // password is missing
+                
             });
 
         expect(res.statusCode).toBe(400);
@@ -80,7 +80,7 @@ describe('User Authentication & Profile API Tests', () => {
     });
 
     it('should return 400 for duplicate email registration', async () => {
-        // Attempt to register the same user again
+        
         const res = await request(app)
             .post('/api/auth/register')
             .send({
@@ -94,7 +94,7 @@ describe('User Authentication & Profile API Tests', () => {
         expect(res.body.message).toBe('User with this email already exists.');
     });
 
-    // POST /api/auth/login
+    
     it('should log in a registered user successfully', async () => {
         const res = await request(app)
             .post('/api/auth/login')
@@ -109,9 +109,9 @@ describe('User Authentication & Profile API Tests', () => {
         expect(res.body.data.email).toBe(testUserEmail);
         expect(res.body.data.fullName).toBe(testUserFullName);
         expect(res.body.data.role).toBe('normal');
-        expect(res.body.data).not.toHaveProperty('password'); // Password should not be returned
+        expect(res.body.data).not.toHaveProperty('password'); 
 
-        userToken = res.body.token; // Store token for protected routes
+        userToken = res.body.token; 
     });
 
     it('should return 401 for invalid login credentials', async () => {
@@ -119,7 +119,7 @@ describe('User Authentication & Profile API Tests', () => {
             .post('/api/auth/login')
             .send({
                 email: testUserEmail,
-                password: 'WrongPassword!' // Incorrect password
+                password: 'WrongPassword!' 
             });
 
         expect(res.statusCode).toBe(401);
@@ -145,7 +145,7 @@ describe('User Authentication & Profile API Tests', () => {
             .post('/api/auth/login')
             .send({
                 email: testUserEmail
-                // password is missing
+               
             });
 
         expect(res.statusCode).toBe(400);
@@ -157,20 +157,18 @@ describe('User Authentication & Profile API Tests', () => {
     it('should get authenticated user profile', async () => {
         const res = await request(app)
             .get('/api/auth/profile')
-            .set('Authorization', `Bearer ${userToken}`); // Use the token obtained from login
-
+            .set('Authorization', `Bearer ${userToken}`); 
         expect(res.statusCode).toBe(200);
         expect(res.body.success).toBe(true);
         expect(res.body.data._id.toString()).toBe(userId.toString());
         expect(res.body.data.email).toBe(testUserEmail);
         expect(res.body.data.fullName).toBe(testUserFullName);
-        expect(res.body.data).not.toHaveProperty('password'); // Password should never be returned
+        expect(res.body.data).not.toHaveProperty('password'); 
     });
 
     it('should return 401 for unauthenticated profile access', async () => {
         const res = await request(app)
-            .get('/api/auth/profile'); // No token provided
-
+            .get('/api/auth/profile'); 
         expect(res.statusCode).toBe(401);
         expect(res.body.success).toBe(false);
         expect(res.body.message).toMatch(/Authentication failed: No token provided./i);
@@ -195,7 +193,7 @@ describe('User Authentication & Profile API Tests', () => {
         expect(res.body.data.fullName).toBe(updatedFullName);
         expect(res.body.data.location).toBe(updatedLocation);
 
-        // Verify in DB
+        
         const userInDb = await User.findById(userId);
         expect(userInDb.fullName).toBe(updatedFullName);
         expect(userInDb.location).toBe(updatedLocation);
@@ -204,7 +202,7 @@ describe('User Authentication & Profile API Tests', () => {
     it('should return 401 for unauthenticated profile update', async () => {
         const res = await request(app)
             .put('/api/auth/profile')
-            .send({ fullName: 'Unauthorized Update' }); // No token
+            .send({ fullName: 'Unauthorized Update' }); 
 
         expect(res.statusCode).toBe(401);
         expect(res.body.success).toBe(false);
@@ -212,7 +210,7 @@ describe('User Authentication & Profile API Tests', () => {
     });
 
     it('should return 400 if updating email to an already existing email', async () => {
-        // Create another user with an email that will conflict
+        
         await request(app)
             .post('/api/auth/register')
             .send({ fullName: 'Existing User', email: 'existing@example.com', password: 'ExistingPassword123!' });
@@ -220,52 +218,42 @@ describe('User Authentication & Profile API Tests', () => {
         const res = await request(app)
             .put('/api/auth/profile')
             .set('Authorization', `Bearer ${userToken}`)
-            .send({ email: 'existing@example.com' }); // Try to change current user's email to an existing one
+            .send({ email: 'existing@example.com' }); 
 
-        expect(res.statusCode).toBe(400); // Expecting 400 from User.findOne for existing email check
+        expect(res.statusCode).toBe(400); 
         expect(res.body.success).toBe(false);
         expect(res.body.message).toBe('User with this email already exists.');
     });
 
 
-    // PUT /api/auth/profile/picture
+    
     it('should update user profile picture', async () => {
-        // Path to a dummy image file (create one in your project if needed, e.g., test/dummy.png)
-        // For actual testing, you might need a small dummy image in your test directory.
-        const dummyImagePath = path.join(__dirname, 'dummy.png'); // Assuming dummy.png is in test/
+       
+        const dummyImagePath = path.join(__dirname, 'dummy.png'); 
 
-        // Create a dummy.png file if it doesn't exist for the test to run.
-        // In a real scenario, you would have a small dummy image file in your test directory.
-        // For now, we'll assume it exists or mock fs.
-        // A simple way to create one for testing: echo "test_image" > test/dummy.png (though this won't be a valid image)
-        // For a proper test, ensure you have a small PNG or JPG file at test/dummy.png
-        // Example: You can use a tiny base64 encoded image or create a simple file.
-        // For supertest to send a file, the file path needs to exist.
-        // If you don't have a dummy.png, this test will fail on file path.
-        // You might need to manually create an empty dummy.png in your 'test' folder
-        // or a small valid image file, e.g., via a graphics program.
+        
 
         const res = await request(app)
             .put('/api/auth/profile/picture')
             .set('Authorization', `Bearer ${userToken}`)
-            .attach('profilePicture', dummyImagePath); // 'profilePicture' is the field name used by multer
+            .attach('profilePicture', dummyImagePath); 
 
         expect(res.statusCode).toBe(200);
         expect(res.body.success).toBe(true);
         expect(res.body.message).toBe('Profile picture updated successfully.');
-        expect(res.body.data.profilePicture).toMatch(/\/images\/profile-pictures\/.+\.(png|jpg|jpeg)$/); // Check for expected URL format
+        expect(res.body.data.profilePicture).toMatch(/\/images\/profile-pictures\/.+\.(png|jpg|jpeg)$/); 
 
-        // Verify in DB
+       
         const userInDb = await User.findById(userId);
         expect(userInDb.profilePicture).toMatch(/\/images\/profile-pictures\/.+\.(png|jpg|jpeg)$/);
     });
 
     it('should return 401 for unauthenticated profile picture update', async () => {
-        const dummyImagePath = path.join(__dirname, 'dummy.png'); // Use dummy path
+        const dummyImagePath = path.join(__dirname, 'dummy.png'); 
 
         const res = await request(app)
             .put('/api/auth/profile/picture')
-            .attach('profilePicture', dummyImagePath); // No token
+            .attach('profilePicture', dummyImagePath); 
 
         expect(res.statusCode).toBe(401);
         expect(res.body.success).toBe(false);
@@ -275,7 +263,7 @@ describe('User Authentication & Profile API Tests', () => {
     it('should return 400 if no file is uploaded for profile picture update', async () => {
         const res = await request(app)
             .put('/api/auth/profile/picture')
-            .set('Authorization', `Bearer ${userToken}`); // No file attached
+            .set('Authorization', `Bearer ${userToken}`); 
 
         expect(res.statusCode).toBe(400);
         expect(res.body.success).toBe(false);

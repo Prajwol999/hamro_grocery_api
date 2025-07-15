@@ -9,7 +9,7 @@ import User from '../models/User.js';
 let adminToken;
 let normalUserToken;
 let adminUserId;
-let testCategoryId; // Category needed for product creation
+let testCategoryId; 
 let productToUpdateId;
 let productToDeleteId;
 
@@ -19,7 +19,7 @@ const testNormalUserEmail = 'userproducttest@example.com';
 const testNormalUserPassword = 'UserPassword123!';
 
 beforeAll(async () => {
-    // Clean up existing test data relevant to products
+    
     await Product.deleteMany({});
     await Category.deleteMany({ name: { $in: ['TestProductCategory', 'TempUpdateCategory'] } });
     await User.deleteMany({ email: { $in: [testAdminEmail, testNormalUserEmail] } });
@@ -34,7 +34,7 @@ beforeAll(async () => {
         .send({ email: testAdminEmail, password: testAdminPassword });
     adminToken = adminLoginRes.body.token;
 
-    // Set admin role for the registered user
+    
     const adminUser = await User.findOne({ email: testAdminEmail });
     adminUser.role = 'admin';
     await adminUser.save();
@@ -50,14 +50,14 @@ beforeAll(async () => {
         .send({ email: testNormalUserEmail, password: testNormalUserPassword });
     normalUserToken = normalLoginRes.body.token;
 
-    // Create a test category, as products depend on categories
+    
     const categoryRes = await request(app)
         .post('/api/categories')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ name: 'TestProductCategory' });
     testCategoryId = categoryRes.body._id;
 
-    // Create some initial products for testing
+    
     const product1 = await Product.create({
         name: 'Product For Update',
         category: testCategoryId,
@@ -80,18 +80,18 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    // Clean up all test data
+    
     await Product.deleteMany({});
     await Category.deleteMany({ name: { $in: ['TestProductCategory', 'TempUpdateCategory'] } });
     await User.deleteMany({ email: { $in: [testAdminEmail, testNormalUserEmail] } });
 
-    // Close Mongoose connection
+    
     if (mongoose.connection.readyState === 1) {
         await mongoose.connection.close();
         console.log('--- afterAll (Product Tests): MongoDB connection closed cleanly ---');
     }
 
-    // Explicitly close the HTTP server
+    
     if (server && server.listening) {
         await new Promise(resolve => server.close(resolve));
         console.log('--- afterAll (Product Tests): Express server closed cleanly ---');
@@ -100,9 +100,9 @@ afterAll(async () => {
 });
 
 describe('Product API Tests', () => {
-    // GET Products (Public)
+    
     it('should get all products for any user (public route)', async () => {
-        // Create an extra product to ensure there's data to fetch for GET all
+        
         await Product.create({
             name: 'Another Public Product',
             category: testCategoryId,
@@ -114,11 +114,11 @@ describe('Product API Tests', () => {
         const res = await request(app).get('/api/products');
         expect(res.statusCode).toBe(200);
         expect(Array.isArray(res.body)).toBe(true);
-        expect(res.body.length).toBeGreaterThanOrEqual(2); // At least productToUpdate, productToDelete, and Another Public Product
-        expect(res.body[0]).toHaveProperty('category'); // Check if populated
+        expect(res.body.length).toBeGreaterThanOrEqual(2); 
+        expect(res.body[0]).toHaveProperty('category'); 
     });
 
-    // POST Create Product (Admin Only)
+    
     it('should allow admin to create a new product', async () => {
         const res = await request(app)
             .post('/api/products')
@@ -174,16 +174,16 @@ describe('Product API Tests', () => {
             .set('Authorization', `Bearer ${adminToken}`)
             .send({
                 name: 'Product with Missing Fields',
-                // category, price, stock, imageUrl are missing
+                
             });
 
         expect(res.statusCode).toBe(400);
-        // Updated expectation to match the explicit controller message
+        
         expect(res.body.message).toBe('All product fields are required.');
     });
 
     it('should return 404 if category ID is invalid or not found during creation', async () => {
-        const invalidCategoryId = new mongoose.Types.ObjectId(); // Non-existent ID
+        const invalidCategoryId = new mongoose.Types.ObjectId(); 
 
         const res = await request(app)
             .post('/api/products')
@@ -196,13 +196,13 @@ describe('Product API Tests', () => {
                 imageUrl: 'http://example.com/invalidcat.jpg'
             });
 
-        // Updated expectation to match the controller's 404 for category not found
+        
         expect(res.statusCode).toBe(404);
         expect(res.body.message).toBe('Category not found.');
     });
 
 
-    // PUT Update Product (Admin Only)
+    
     it('should allow admin to update an existing product', async () => {
         const res = await request(app)
             .put(`/api/products/${productToUpdateId}`)
@@ -251,19 +251,19 @@ describe('Product API Tests', () => {
     });
 
     it('should return 404 if updating with an invalid category ID', async () => {
-        const invalidCategoryId = new mongoose.Types.ObjectId(); // Non-existent category ID
+        const invalidCategoryId = new mongoose.Types.ObjectId(); 
 
         const res = await request(app)
             .put(`/api/products/${productToUpdateId}`)
             .set('Authorization', `Bearer ${adminToken}`)
             .send({ category: invalidCategoryId });
 
-        // Updated expectation to match the controller's 404 for category not found
+        
         expect(res.statusCode).toBe(404);
         expect(res.body.message).toBe('Category not found.');
     });
 
-    // DELETE Product (Admin Only)
+    
     it('should allow admin to delete a product', async () => {
         const res = await request(app)
             .delete(`/api/products/${productToDeleteId}`)
